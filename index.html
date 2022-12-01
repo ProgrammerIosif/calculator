@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            background: rgb(63,217,251);
+            background: radial-gradient(circle, rgba(63, 251, 91, 0.548) 48%, rgba(0,0,0,1) 100%); 
+
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container{
+            margin: 0 auto;
+            height: 640px;
+            width: 510px;
+            background-color: black;
+            border-radius: 10px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #screen{
+            height: 100px;
+            padding-right: 10px;
+            width: 94%;
+            background-color: grey;
+
+            border: 6px solid black;
+            border-radius: 15px;
+
+            text-align:end;
+            font-size: 90px;
+        } 
+        .row{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .button{
+            width: 116px;
+            height: 66px;
+            border-radius: 10px;
+            flex: 1;
+            margin: 4px;
+            padding-top: 30px;
+            text-align: center;
+            font-size: 32px;
+            cursor: pointer;
+        }
+        .button:hover{
+            opacity: 0.7;
+        }
+        .button:active{
+            opacity: 0.3;
+        }
+        .operator,
+        #plus_minus,
+        #percent,
+        #equal{
+            background-color: orange;
+        }
+        .number,
+        #dot{
+            background-color: green
+        }
+        #_0{
+            flex: 2;
+        }
+        #ac{
+            background-color: burlywood;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="screen">0</div>
+        <div class="buttons">
+            <div class="row">
+                <div id="ac" class="button">AC</div>
+                <div id="plus_minus" class="button">+/-</div>
+                <div id="percent" class="button">%</div>
+                <div id="slash" class="button operator">/</div>
+            </div>
+            <div class="row">
+                <div id="_7" class="button number">7</div>
+                <div id="_8" class="button number">8</div>
+                <div id="_9" class="button number">9</div>
+                <div id="star" class="button operator">*</div>
+            </div>
+            <div class="row">
+                <div id="_4" class="button number">4</div>
+                <div id="_5" class="button number">5</div>
+                <div id="_6" class="button number">6</div>
+                <div id="minus" class="button operator">-</div>
+            </div>
+            <div class="row">
+                <div id="_1" class="button number">1</div>
+                <div id="_2" class="button number">2</div>
+                <div id="_3" class="button number">3</div>
+                <div id="plus" class="button operator">+</div>
+            </div>
+            <div class="row">
+                <div id="_0" class="button number">0</div>
+                <div id="dot" class="button">.</div>
+                <div id="equal" class="button">=</div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        //functios
+
+        function initializeExpression() {
+            exp.operand1 = 0;
+            exp.operand = '';
+            exp.operand2 = 0;
+            exp.operand1DotPlace = -1;
+            exp.operand2DotPlace = -1;
+            currOperand = 'operand1';
+            updateScreen();
+        }
+
+        function updateScreen(){
+            const screen = document.getElementById("screen");
+            let output = exp[currOperand];
+            let dot = exp[currOperand + dotPlace];
+            if(output.toString().length > 10)
+                if(dot === -1 || dot === 0 || output > 9999999999)
+                    screen.textContent = 'Come on bro';
+                else
+                    screen.textContent = output.toString().slice(0,10);
+            else
+                if(dot === 0) screen.textContent += '.';
+                else if(dot > 0) screen.textContent = output.toString().slice(0,10);
+                else screen.textContent = output;
+        }
+
+        function updateOperand(numeral){
+            let number = exp[currOperand];
+            let dot = exp[currOperand + dotPlace];
+            numeral = parseInt(numeral.slice(1));
+            if(end === true){
+                number = 0; 
+                dot = -1;
+                end = false;
+            }
+            if(dot === -1)
+                exp[currOperand] = number*10 + numeral; 
+            else{
+                for(let i = 0; i <= dot; i++)
+                    numeral /= 10;
+                exp[currOperand] = number + numeral;
+                exp[currOperand + dotPlace]++;
+                console.log(exp[currOperand]);
+            }
+            updateScreen();
+        }
+
+        function changeSign() {
+            exp[currOperand] = -exp[currOperand]
+            updateScreen();
+        }
+
+        function getPercent() {
+            exp[currOperand] = exp[currOperand] / 100;
+            exp[currOperand + dotPlace] += 2;
+            updateScreen();
+        }
+
+        function addDot() {
+            let number = exp[currOperand];
+            let dot = exp[currOperand + dotPlace];
+            if(dot === -1){
+                exp[currOperand + dotPlace] = 0;
+                updateScreen();
+            }
+        }
+
+        function useOperator(operator) {
+            if(exp.operator == ''){
+                exp.operator = operator;
+                currOperand = 'operand2';
+                exp.operand2 = 0;
+            }
+            else{
+                if(exp.operand2 === 0)
+                    exp.operand2 = exp.operand1;
+                resolveOperation();
+                exp.operator = operator;
+                currOperand = 'operand2';
+            }
+        }
+
+        function resolveOperation() {
+            console.log(exp.operator);
+            switch (exp.operator) {
+                case 'slash':
+                    division();
+                    break;
+                case 'star':
+                    multiplication();
+                    break;
+                case 'minus':
+                    subtraction();
+                    break;
+                case 'plus':
+                    addition();
+                    break;
+            }
+        }
+
+        function division() {
+            if(exp.operand2 != ''){
+                exp.operand1 = (exp.operand1 / exp.operand2).toFixed(5);
+                exp.operator = '';
+                end = true;
+                currOperand = 'operand1';
+                operand2 = 0;
+                updateScreen();
+            }
+        }
+        
+        function multiplication() {
+            if(exp.operand2 != ''){
+                exp.operand1 = exp.operand1 * exp.operand2;
+                exp.operator = '';
+                end = true;
+                currOperand = 'operand1';
+                operand2 = 0;
+                updateScreen();
+            }
+
+        }
+
+        function subtraction() {
+            if(exp.operand2 != ''){
+                exp.operand1 = exp.operand1 - exp.operand2;
+                exp.operator = '';
+                end = true;
+                currOperand = 'operand1';
+                operand2 = 0;
+                updateScreen();
+            }
+        }
+
+        function addition() {
+            console.log(exp.operand1 + ' + ' + exp.operand2);
+            if(exp.operand2 != ''){
+                exp.operand1 = exp.operand1 + exp.operand2;
+                exp.operator = '';
+                end = true;
+                currOperand = 'operand1';
+                operand2 = 0;
+                updateScreen();
+            }
+        }
+
+        //variable declarations + intializations
+
+        let exp = {
+            operand1: 0,
+            operand1DotPlace: -1,
+            operator: '',
+            operand2: 0,
+            operand2DotPlace: -1,
+        };
+        var currOperand = 'operand1';
+        let end = false; 
+        let dotPlace = 'DotPlace';
+        
+        const numbers = document.querySelectorAll('.number');
+        const operators = document.querySelectorAll('.operator');
+        const ac = document.querySelector('#ac');
+        const p_m = document.querySelector('#plus_minus');
+        const percent = document.querySelector('#percent');
+        const dot = document.querySelector('#dot');
+        const equal = document.querySelector('#equal');
+         
+        //event Listeners
+
+        numbers.forEach(x => x.addEventListener('click', function(){updateOperand(x.id)}));
+        operators.forEach(x => x.addEventListener('click', function(){useOperator(x.id)}));
+        ac.addEventListener('click', function(){initializeExpression()});
+        p_m.addEventListener('click', function(){changeSign()});
+        percent.addEventListener('click', function(){getPercent()});
+        dot.addEventListener('click', function(){addDot()});
+        equal.addEventListener('click', function(){resolveOperation()});
+
+
+    </script>
+</body>
+</html>
